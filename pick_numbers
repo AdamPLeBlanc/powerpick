@@ -1,0 +1,38 @@
+import random
+import os
+import json
+from datetime import datetime as dt
+
+#data to hold history info
+historyPath = "pick_history.json"
+dateFmtStr = "%b-%d-%Y %H:%M:%S"
+history = None
+
+#ranges of current powerball rules
+numRegBalls = 5
+numPowBalls = 1
+maxRegNum = 69
+maxPowNum = 26
+
+#load saved history if available
+try:
+    with open(historyPath,'rb') as input: 
+        historyMap = json.load(input)
+except Exception:
+    historyMap = {"HISTORY":[]}
+
+history = historyMap["HISTORY"]
+
+#generate the regular numbers and power numbers
+regBalls = random.sample(xrange(1,maxRegNum + 1),numRegBalls)
+powBalls = random.sample(xrange(1,maxPowNum + 1),numPowBalls)
+
+#print results
+print "numbers: %s  PowerBall: %s" % (', '.join(map(str,regBalls)),', '.join(map(str,powBalls)))
+
+#save history
+if history != None:
+    history.append([dt.today().strftime(dateFmtStr),regBalls,powBalls])
+    with open(historyPath,'wb') as output:
+        json.dump(historyMap,output,sort_keys=True,indent=4,separators=(',',': '))
+
