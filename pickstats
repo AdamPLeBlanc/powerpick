@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import json
+
+class pick(object):
+	def __init__(self,regBallLst,pwrBall):
+		self.regBallLst = set(map(int,regBallLst))
+		self.pwrBall = int(pwrBall)
+	def __equal__(self,other):
+		retVal = false
+		if type(self) == type(other):
+			retVal = \
+				self.regBallLst == other.regBallLst and \
+				self.pwrBall == other.pwrBall
+		return retVal
+	def __hash__(self):
+		return sum(self.regBallLst) + self.pwrBall
+		
+	def __str__(self):
+		return "{0} : {1}".format(','.join(map(str,self.regBallLst)),self.pwrBall)
+
+def getMostPicked(history):
+    regCntr = [0] * 70
+    pwrCntr = [0] * 27
+    for regBalls,pwrBall in history:
+        for regBall in regBalls:
+        	regCntr[regBall] += 1
+        pwrCntr[pwrBall] += 1
+        topRegBalls = zip(*sorted([[x,regCntr[x]] for x in xrange(len(regCntr))],lambda x,y : cmp(x[1],y[1]),reverse=True))[0][:5]
+        topPwrBall = zip(*sorted([[x,pwrCntr[x]] for x in xrange(len(pwrCntr))],lambda x,y : cmp(x[1],y[1]),reverse=True))[0][0]
+    return pick(topRegBalls,topPwrBall)
+    
+def getUniqStats(history):
+	seen = set()
+	dups = set()
+	for regBalls,pwrBall in history:
+		tmpPick = pick(regBalls,pwrBall)
+		if tmpPick not in seen:
+			if tmpPick not in dups:
+				seen.add(tmpPick)
+		else:
+			dups.add(tmpPick)
+			seen.remove(tmpPick)
+	return [seen,dups]
+
+
+if "__main__" in __name__:
+    if len(sys.argv) == 2:
+        jsonPath = sys.argv[1]
+        if os.path.exists(jsonPath):
+            history = json.load(open(jsonPath,'rb')).get("HISTORY",[])
+            #print total picks
+            print "total picks: {0}".format(len(history))
+            #print most picked numbers
+            topPick = getMostPicked(history)
+            print "Most Picked Numbers: {0}".format(topPick)
+            #print repeat picks and number of unique numbers
+            uniqPicks,dupPicks = getUniqStats(history)
+            print "repeat picks: {0}".format(len(dupPicks))
+            if dupPicks:
+            	print os.linesep.join(["  {0!s}".format(n) for n in dupPicks])
+            print "number of unique picks: {0}".format(len(uniqPicks))
